@@ -42,7 +42,6 @@ class ForestFire:
 
                 # If neighbor cell has tree, ignite with probability g
                 if neighbor in self.trees:
-                    print(neighbor)
                     self.trees.remove(neighbor)
                     self.ignited_trees.append(neighbor)
             
@@ -74,7 +73,7 @@ class ForestFire:
         fig, ax = plt.subplots()
         for t in range(self.timesteps):
             self.do_timestep()
-            self.ims.append([ax.imshow(self.forest, animated=True, cmap = self.cmap)])
+            self.ims.append([ax.imshow(self.forest, animated=True, cmap = self.cmap, vmin=0, vmax=2)])
             self.t+= 1
         
         self.animate(fig)
@@ -82,15 +81,15 @@ class ForestFire:
 
     def animate(self, fig):
 
-        ani = animation.ArtistAnimation(fig, self.ims, interval=50, blit=True,
+        ani = animation.ArtistAnimation(fig, self.ims, interval=1, blit=True,
                                         repeat_delay=1000)
         plt.show()
 
 
-L = 10
+L = 50
 g = 0
 f = 5
-timesteps = 100
+timesteps = 1000
 
 forest = ForestFire(L, g, f, timesteps)
 forest.run()
