@@ -20,6 +20,10 @@ class ForestFire:
         self.burned_trees = []
         self.ignited_trees = []
 
+        # For fire-size frequency
+        self.current_fires = []
+        self.fire_sizes = []
+
     def get_neighbors(self, coordinate):
         up = (coordinate[0], coordinate[1] - 1)
         down = (coordinate[0], coordinate[1] + 1)
@@ -35,6 +39,9 @@ class ForestFire:
         self.forest[x, y] = 1
         self.trees.add((x, y))
 
+        # Dummy variable to detect extinguished fires
+        keep_fire = np.repeat(False, len(self.current_fires))
+
         # Check all neighors of currently burning trees
         for burning_tree in self.burning_trees:
             neighbors = self.get_neighbors(burning_tree)
@@ -45,6 +52,13 @@ class ForestFire:
                 if neighbor in self.trees and random_num < self.g:
                     self.trees.remove(neighbor)
                     self.ignited_trees.append(neighbor)
+
+                    # Add new burning tree to corresponding current fire
+                    for i, fire in enumerate(self.current_fires): 
+                        if burning_tree in fire: 
+                            fire.append(neighbor)
+                            keep_fire[i] = True
+
             
             # Remove burning tree after it ignited others
             self.burned_trees.append(burning_tree)
@@ -60,6 +74,15 @@ class ForestFire:
         self.burned_trees = []
         self.ignited_trees = []
 
+        # Delete extinguised current fires and save their size
+        fires_to_keep = []
+        for i, fire in enumerate(self.current_fires):
+            if keep_fire[i]:
+                fires_to_keep.append(fire)
+            else: 
+                self.fire_sizes.append(len(fire))
+        self.current_fires = fires_to_keep
+
         # Ignite random cell according to lightning frequency
         if self.t % self.lightning_frequency == 0:
             x, y = np.random.randint(self.L, size=2)
@@ -69,6 +92,9 @@ class ForestFire:
                 self.forest[x, y] = 2
                 self.burning_trees.add((x, y))
                 self.trees.remove((x, y))
+
+                # Add new current fire 
+                self.current_fires.append([(x,y)])
 
     def run(self):
         fig, ax = plt.subplots()
@@ -88,9 +114,15 @@ class ForestFire:
 
 
 L = 50
-g = 0
+g = 1
 f = 5
-timesteps = 1000
+timesteps = 5000
 
 forest = ForestFire(L, g, f, timesteps)
 forest.run()
+
+
+
+
+
+
