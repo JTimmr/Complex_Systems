@@ -39,9 +39,10 @@ class ForestFire:
         for burning_tree in self.burning_trees:
             neighbors = self.get_neighbors(burning_tree)
             for neighbor in neighbors:
+                random_num = np.random.rand(1)[0]
 
                 # If neighbor cell has tree, ignite with probability g
-                if neighbor in self.trees:
+                if neighbor in self.trees and random_num < self.g:
                     self.trees.remove(neighbor)
                     self.ignited_trees.append(neighbor)
             
