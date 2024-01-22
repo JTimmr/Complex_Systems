@@ -17,6 +17,8 @@ class ForestFire:
         self.ims = []
         self.trees = set()
         self.burning_trees = set()
+        self.burned_trees = []
+        self.ignited_trees = []
 
     def get_neighbors(self, coordinate):
         up = (coordinate[0], coordinate[1] - 1)
@@ -33,30 +35,46 @@ class ForestFire:
         self.forest[x, y] = 1
         self.trees.add((x, y))
 
-        # Ignite random cell according to lightning frequency
-        if self.t % self.lightning_frequency == 0:
-            x, y = np.random.randint(self.L, size=2)
-
-            if (x, y) in self.trees:
-                self.forest[x, y] = 2
-                self.burning_trees.add((x, y))
-                self.trees.remove((x, y))
-        
         # Check all neighors of currently burning trees
         for burning_tree in self.burning_trees:
             neighbors = self.get_neighbors(burning_tree)
             for neighbor in neighbors:
 
                 # If neighbor cell has tree, ignite with probability g
-                if neighbor in self.trees and np.random.random() < self.g:
+                if neighbor in self.trees:
+                    print(neighbor)
                     self.trees.remove(neighbor)
-                    self.burning_trees.add(neighbor)
+                    self.ignited_trees.append(neighbor)
+            
+            # Remove burning tree after it ignited others
+            self.burned_trees.append(burning_tree)
+
+        for burned_tree in self.burned_trees:
+            self.burning_trees.remove(burned_tree)
+            self.forest[burned_tree] = 0
+
+        for ignited_tree in self.ignited_trees:
+            self.burning_trees.add(ignited_tree)
+            self.forest[ignited_tree] = 2
+
+        self.burned_trees = []
+        self.ignited_trees = []
+
+        # Ignite random cell according to lightning frequency
+        if self.t % self.lightning_frequency == 0:
+            x, y = np.random.randint(self.L, size=2)
+
+            # Ignite tree
+            if (x, y) in self.trees:
+                self.forest[x, y] = 2
+                self.burning_trees.add((x, y))
+                self.trees.remove((x, y))
 
     def run(self):
         fig, ax = plt.subplots()
         for t in range(self.timesteps):
             self.do_timestep()
-            self.ims.append([ax.imshow(self.forest, animated=True, cmap=self.cmap)])
+            self.ims.append([ax.imshow(self.forest, animated=True, cmap = self.cmap)])
             self.t+= 1
         
         self.animate(fig)
