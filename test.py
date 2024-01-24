@@ -104,6 +104,7 @@ class ForestFire:
     def run(self) -> None:
         fig, ax = plt.subplots()
         for t in range(self.timesteps):
+            self.add_obstacles(20)
             self.do_timestep()
             self.ims.append([ax.imshow(self.forest, animated=True, cmap = self.cmap, vmin=0, vmax=2)])
             self.t+= 1
@@ -117,7 +118,7 @@ class ForestFire:
         plt.show()
 
 
-L = 1000
+L = 50
 g = 0.99
 f = 15
 timesteps = 5000
