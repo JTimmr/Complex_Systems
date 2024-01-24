@@ -13,7 +13,7 @@ class ForestFire:
         self.timesteps = timesteps
         self.t = 0
         self.forest = np.zeros([L, L])
-        self.cmap = colors.ListedColormap(['brown', 'green', 'orange'])
+        self.cmap = colors.ListedColormap(['#4a1e13', '#047311', '#B95900'])
         self.ims = []
         self.trees = set()
         self.burning_trees = set()
@@ -25,10 +25,10 @@ class ForestFire:
         self.fire_sizes = []
 
     def get_neighbors(self, coordinate):
-        up = (coordinate[0], coordinate[1] - 1)
-        down = (coordinate[0], coordinate[1] + 1)
-        left = (coordinate[0] - 1, coordinate[1])
-        right = (coordinate[0] + 1, coordinate[1])
+        up = (coordinate[0], (coordinate[1] - 1) % self.L)
+        down = (coordinate[0], (coordinate[1] + 1) % self.L)
+        left = ((coordinate[0] - 1) % self.L, coordinate[1])
+        right = ((coordinate[0] + 1) % self.L, coordinate[1])
         return [up, down, left, right]
 
 
@@ -101,7 +101,7 @@ class ForestFire:
         for t in range(self.timesteps):
             self.do_timestep()
             self.ims.append([ax.imshow(self.forest, animated=True, cmap = self.cmap, vmin=0, vmax=2)])
-            self.t+= 1
+            self.t += 1
         
         self.animate(fig)
 
@@ -115,8 +115,8 @@ class ForestFire:
 
 L = 50
 g = 1
-f = 5
-timesteps = 5000
+f = 50
+timesteps = 50000
 
 forest = ForestFire(L, g, f, timesteps)
 forest.run()
