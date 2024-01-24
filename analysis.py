@@ -13,7 +13,7 @@ def log_log_plot(instance):
     plt.show()
 
 # Function to test power law distribution
-def probability_of_power_law(instances):
+def proportion_of_power_law(instances):
     '''
     Given the frequency of fire sizes from n instances of a forest fire model,
     returns the proportion of such instances for which the fire sizes seem to 
@@ -32,19 +32,24 @@ def probability_of_power_law(instances):
     proportion_power_laws = number_power_laws / len(instances)
     return proportion_power_laws
 
-# Sample use where n = 20, model parameters are L = 50, g = 1 and f = 5 and 
-# each model is ran 10^4 iterations
 
-instances = []
-n_instances = 20
-L = 50; g = 1; f = 5; timesteps = 10 ** 4
+if __name__ == '__main__':
 
-for i in range(n_instances):
-    forest = ForestFire(L, g, f, timesteps)
-    forest.run()
-    instances.append(forest)
+    # Sample use where n = 20, model parameters are L = 50, g = 1 and f = 5 and 
+    # each model is ran 10^4 iterations
+    instances = []
+    n_instances = 20
+    L = 50; g = 1; f = 5; timesteps = 10 ** 4
 
-probability_of_power_law(instances)    
+    for i in range(n_instances):
+        forest = ForestFire(L, g, f, timesteps)
+        forest.run()
+        instances.append(forest)
+
+    proportion = proportion_of_power_law(instances)    
+    print(f'Proportion of model instances that show a power law distribution in the fire size frequency is {proportion}')
+
+
 
 
 
