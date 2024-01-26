@@ -4,6 +4,7 @@ import matplotlib.colors as colors
 import numpy as np
 import pandas as pd
 import powerlaw
+from sklearn.linear_model import LinearRegression
 from tree import Tree
 from fire import Fire
 from forest import Forest
@@ -81,6 +82,24 @@ class Analyse:
         plt.ylabel('Frequency')
         plt.title('Frequency fire sizes over all instances')
         plt.show()
+
+    def find_proportion_stable(self, epsilon = 0.1):
+
+        stable_counter = 0
+
+        # fit linear regression to last 50% of points 
+        cut_off_point = int(self.timesteps / 2)
+        linear_regression = LinearRegression()
+
+        for instance in range(self.instances):
+            Y = self.trees_timeseries[instance,cut_off_point:]
+            X = [[i] for i in range(len(Y))]
+            linear_regression.fit(X,Y)
+
+            # count as stable if slope is smaller than epsilon
+            stable_counter += linear_regression.coef_[0] < epsilon
+
+        return stable_counter/self.instances
     
     def plot_number_trees_timeseries(self):
 
@@ -91,6 +110,7 @@ class Analyse:
         average_value = [np.mean(self.trees_timeseries[:,i]) for i in range(self.timesteps)]
         plt.plot(range(self.timesteps),average_value, color = 'red', label = 'Average')
 
+        plt.grid(True)
         plt.title(f'Number of trees per timestep for {self.instances} instances of model')
         plt.legend()
         plt.xlabel('t')
