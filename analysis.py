@@ -29,8 +29,7 @@ class Analyse:
 
     def run_one_instance(self):
         forest = Forest(self.L, self.g, self.f, self.freeze_time_during_fire, self.timesteps)
-
-        for t in range(self.timesteps):
+        while forest.t < self.timesteps:
             forest.do_timestep()
             if self.instances == 1 and self.remember_history:
                 self.ims.append([self.ax.imshow(forest.forest, animated=True, cmap = self.cmap, vmin=0, vmax=2)])

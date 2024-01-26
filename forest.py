@@ -87,6 +87,7 @@ class Forest:
     def do_timestep(self):
         if not self.freeze_time_during_fire or len(self.fires) == 0:
             self.plant_tree()
+
         self.grow_fire()
         self.extinguish_trees()
         self.update_fires()
