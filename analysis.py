@@ -60,15 +60,20 @@ class Analyse:
     
         self.proportion_power_law = number_power_laws / len(self.fire_sizes)
 
-    def log_log_plot(self, instance=0):
-        
-        data = pd.Series(self.fire_sizes[instance]).value_counts()
-        
+    def log_log_plot(self):
+               
+        all_fire_sizes = []
+        for sizes_list in self.fire_sizes:
+            for element in sizes_list:
+                all_fire_sizes.append(element)
+        data = pd.Series(all_fire_sizes).value_counts()
         plt.scatter(data.index,data)
+
         plt.xscale('log')
         plt.yscale('log')
         plt.xlabel('Fire size')
         plt.ylabel('Frequency')
+        plt.title('Frequency fire sizes over all instances')
         plt.show()
 
     def animate(self, filename):
