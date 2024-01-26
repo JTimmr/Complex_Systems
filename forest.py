@@ -8,10 +8,11 @@ from fire import Fire
 
 class Forest:
 
-    def __init__(self, L, g, f, timesteps):
+    def __init__(self, L, g, f, freeze_time_during_fire, timesteps):
         self.L = L
         self.g = g
         self.lightning_frequency = f
+        self.freeze_time_during_fire = freeze_time_during_fire
         self.timesteps = timesteps
         self.t = 0
         self.forest = np.zeros([L, L])
@@ -52,7 +53,7 @@ class Forest:
         # Ignite tree
         if location in self.trees:
             
-            id = len(self.fires)
+            id = len(self.fires) + len(self.previous_fires)
             fire = Fire(self.t, self.trees[location], id, self)
             self.fires[id] = fire
             self.forest[location] = 2
@@ -76,12 +77,16 @@ class Forest:
         """
         for id, fire in self.fires.items():
             if not fire.burning:
-                del self.fires[id]
                 self.previous_fires[id] = fire
+    
+        for id, fire in self.previous_fires.items():
+            if id in self.fires and not fire.burning:
+                del self.fires[id]
 
 
     def do_timestep(self):
-        self.plant_tree()
+        if not self.freeze_time_during_fire or len(self.fires) == 0:
+            self.plant_tree()
         self.grow_fire()
         self.extinguish_trees()
         self.update_fires()
@@ -89,20 +94,3 @@ class Forest:
         if self.t % self.lightning_frequency == 0:
             self.lightning_strike()
 
-
-    def run(self):
-        fig, ax = plt.subplots()
-        for t in range(self.timesteps):
-            self.do_timestep()
-            self.ims.append([ax.imshow(self.forest, animated=True, cmap = self.cmap, vmin=0, vmax=2)])
-            self.t += 1
-
-        self.animate(fig)
-
-
-    def animate(self, fig):
-
-        ani = animation.ArtistAnimation(fig, self.ims, interval=1, blit=True,
-                                        repeat_delay=1000)
-        
-        plt.show()
