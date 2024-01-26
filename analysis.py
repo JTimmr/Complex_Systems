@@ -66,7 +66,7 @@ class Analyse:
         for sizes_list in self.fire_sizes:
             for element in sizes_list:
                 all_fire_sizes.append(element)
-        data = pd.Series(all_fire_sizes).value_counts()
+        data = pd.Series(all_fire_sizes).value_counts()/len(all_fire_sizes)
         plt.scatter(data.index,data)
 
         plt.xscale('log')
