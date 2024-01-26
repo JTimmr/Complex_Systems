@@ -8,7 +8,8 @@ from fire import Fire
 
 class Forest:
 
-    def __init__(self, L, g, f, freeze_time_during_fire, timesteps):
+
+    def __init__(self, L, g, f, freeze_time_during_fire, timesteps, wind=(0, 0), wind_effects_enabled=False):
         self.L = L
         self.g = g
         self.lightning_frequency = f
@@ -21,6 +22,8 @@ class Forest:
         self.trees = {}
         self.fires = {}
         self.previous_fires = {}
+        self.wind = wind  # Wind vector (dx, dy)
+        self.wind_effects_enabled = wind_effects_enabled
 
         # For fire-size frequency
         self.current_fires = []

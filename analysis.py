@@ -71,8 +71,11 @@ class Analyse:
         plt.ylabel('Frequency')
         plt.show()
 
-    def animate(self, filename):
 
+    def animate(self, filename):
+        if not hasattr(self, 'fig') or not hasattr(self, 'ax'):
+            self.fig, self.ax = plt.subplots()
+        
         ani = animation.ArtistAnimation(self.fig, self.ims, interval=1, blit=True,
                                         repeat_delay=1000)
         

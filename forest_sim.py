@@ -63,7 +63,7 @@ def update_forest(forest: np.ndarray , growth_prob: float, lightning_prob: float
   burn_from_diag = (np.random.rand(*forest.shape) < diag_burn_prob) & diag_burning_neighbors
   new_forest[(forest == TREE) & (burn_from_ortho | burn_from_diag)] = BURNING
   new_forest[forest == BURNING] = EMPTY
-    # mode where evey cell has a probability to catch fire and grow
+    # mode where every cell has a probability to catch fire and grow
   if mode == "parallel":
     growth = (np.random.rand(*forest.shape) < growth_prob) & (forest == EMPTY)
     new_forest[growth] = TREE
