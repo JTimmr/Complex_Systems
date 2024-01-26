@@ -47,7 +47,7 @@ def strike_tree(forest: np.ndarray) -> np.ndarray:
     forest[x, y] = BURNING
     return forest
 
-def update_forest(forest: np.ndarray , growth_prob: float, lightning_prob: float, ortho_burn_prob: float, diag_burn_prob: float, FireLength: int , arrayOfFireLengths: list[int], mode = "sequential"):
+def update_forest(forest: np.ndarray , growth_prob: float, lightning_prob: float, ortho_burn_prob: float, diag_burn_prob: float, FireLength: int , arrayOfFireLengths: list[int], time_array: list[int], i,  mode = "sequential"):
   new_forest = forest.copy()
   k = 1
   # orthogonal neighbors
@@ -80,6 +80,7 @@ def update_forest(forest: np.ndarray , growth_prob: float, lightning_prob: float
     if (fire_counts.size == 0):
             if FireLength > 0: 
                 arrayOfFireLengths.append(FireLength)
+                time_array.append(i)
             FireLength = 0
             k = 1
             growth = (np.random.rand(*forest.shape) < growth_prob) & (forest == EMPTY)
@@ -91,7 +92,7 @@ def update_forest(forest: np.ndarray , growth_prob: float, lightning_prob: float
     else: 
         FireLength = FireLength + fire_counts.size
         k = 0
-  return new_forest, FireLength, arrayOfFireLengths, k
+  return new_forest, FireLength, arrayOfFireLengths, k, i, time_array
 
 # @njit(parallel=True)
 # def update_forest_parallel(forest, growth_prob, lightning_prob, ortho_burn_prob=0.69, diag_burn_prob=0.42):
@@ -125,48 +126,35 @@ def update_forest(forest: np.ndarray , growth_prob: float, lightning_prob: float
 
 #     return new_forest
 
-def run_simulation(size: tuple, tree_density: float, iterations: int, fire_start, growth_prob: float, lightning_prob: float, ortho_burn_prob: float, diag_burn_prob: float, FireLength: int, arrayOfFireLengths: list[int] ) -> None:
+def run_simulation(size: tuple, tree_density: float, iterations: int, fire_start, growth_prob: float, lightning_prob: float, ortho_burn_prob: float, diag_burn_prob: float, FireLength: int, arrayOfFireLengths: list[int] ) :
     forest = initialize_forest(size=size, tree_density=tree_density)
     # fig, ax = plt.subplots(figsize=(10, 10))
     taken = 0
     # imgs = []
     i = 0
+    time_array = []
     while i < iterations:
         start_time = time.time()
-        forest, FireLength, arrayOfFireLengths, k = update_forest(forest=forest, growth_prob=growth_prob, lightning_prob=lightning_prob, ortho_burn_prob=ortho_burn_prob, diag_burn_prob=diag_burn_prob, FireLength=FireLength, arrayOfFireLengths=arrayOfFireLengths)
+        forest, FireLength, arrayOfFireLengths, k, i, time_array = update_forest(forest=forest, growth_prob=growth_prob, lightning_prob=lightning_prob, ortho_burn_prob=ortho_burn_prob, diag_burn_prob=diag_burn_prob, FireLength=FireLength, arrayOfFireLengths=arrayOfFireLengths, time_array=time_array, i = i)
         i += k
-        print(i)
         taken += time.time() - start_time
         # imgs.append([ax.imsho w(forest, animated=True, cmap=colors.ListedColormap(colors=['brown', 'green', 'orange']), vmin=0, vmax=2)])
     print("Total time taken: {:.2f} seconds".format(taken))
+    return time_array, arrayOfFireLengths
     # ani = animation.ArtistAnimation(fig=fig, artists=imgs, interval=0.01, blit=True, repeat_delay=1000)
     # plt.show()
 
 # Parameters
-size: tuple = (300, 300) 
+size: tuple = (50, 50) 
 tree_density: float = 0.01
-iterations: int = 50000
+iterations: int = 5000
 fire_start: tuple = (250, 250)
 growth_prob: float = 0.001
-ortho_burn_prob: float = 0.9
-diag_burn_prob: float = 0
+ortho_burn_prob: float = 0.8
+diag_burn_prob: float = 0.8
 lightning_prob: float = 0.0001 
 FireLength: int  = 0
 arrayOfFireLengths: list[int] = []
 forest = initialize_forest(size=size, tree_density=tree_density) 
 
-run_simulation(size=size, tree_density=tree_density, iterations=iterations, fire_start=fire_start, growth_prob=growth_prob, lightning_prob=lightning_prob, ortho_burn_prob=ortho_burn_prob, diag_burn_prob=diag_burn_prob, FireLength=FireLength, arrayOfFireLengths=arrayOfFireLengths)
-
-y = np.bincount(arrayOfFireLengths)
-x = np.nonzero(a=y)[0]
-plt.scatter(x=x, y=y[x])
-plt.xscale(value='log')
-plt.yscale(value='log')
-plt.show()
-plt.hist(arrayOfFireLengths, bins=50)
-plt.show()
-results = powerlaw.Fit(data=arrayOfFireLengths)
-print(results.power_law.alpha)
-print(results.power_law.xmin)
-R, p = results.distribution_compare(dist1='truncated_power_law', dist2='exponential')
-print(R, p)
+time_array, arrayOfFireLengths = run_simulation(size=size, tree_density=tree_density, iterations=iterations, fire_start=fire_start, growth_prob=growth_prob, lightning_prob=lightning_prob, ortho_burn_prob=ortho_burn_prob, diag_burn_prob=diag_burn_prob, FireLength=FireLength, arrayOfFireLengths=arrayOfFireLengths)
