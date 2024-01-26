@@ -120,9 +120,3 @@ timesteps = 50000
 
 forest = ForestFire(L, g, f, timesteps)
 forest.run()
-
-
-
-
-
-
