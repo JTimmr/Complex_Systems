@@ -21,6 +21,7 @@ class Analyse:
         self.timesteps = timesteps
         self.cmap = colors.ListedColormap(['#4a1e13', '#047311', '#B95900'])
         self.fire_sizes = []
+        self.normalize_frequencies = True
         if self.remember_history:
             fig, ax = plt.subplots()
             self.ax = ax
@@ -63,10 +64,15 @@ class Analyse:
     def log_log_plot(self, instance=0):
         
         data = pd.Series(self.fire_sizes[instance]).value_counts()
+        if self.normalize_frequencies:
+            data /= len(self.fire_sizes[instance])
         
-        plt.scatter(data.index,data)
+        plt.scatter(data.index, data, color='black', s=3)
+        plt.grid(True, which='both', linestyle='--', linewidth=0.5)
+
         plt.xscale('log')
         plt.yscale('log')
+
         plt.xlabel('Fire size')
         plt.ylabel('Frequency')
         plt.show()
@@ -78,10 +84,6 @@ class Analyse:
         
         ani.save(f'{filename}.gif', writer='ffmpeg', fps=30)
     
-
-    def plot_firesizes(self):
-        plt.hist(self.fire_sizes)
-        plt.show()
 
 if __name__ == '__main__':
     L = 10
