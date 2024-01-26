@@ -4,7 +4,9 @@ import matplotlib.colors as colors
 import numpy as np
 import pandas as pd
 import powerlaw
-from test2 import Forest
+from tree import Tree
+from fire import Fire
+from forest import Forest
 
 class Analyse:
     def __init__(self, L, g, f, timesteps, instances, fig=None, ax=None):
@@ -77,3 +79,13 @@ class Analyse:
         plt.hist(self.fire_sizes)
         plt.show()
 
+if __name__ == '__main__':
+    L = 10
+    g = 1
+    f = 50
+    timesteps = 10**3
+    instances = 10
+    analysis_exp =  Analyse(L, g, f, timesteps, instances)
+    analysis_exp.run_all()
+    print(analysis_exp.find_proportion_power_law())
+    analysis_exp.log_log_plot(3)
