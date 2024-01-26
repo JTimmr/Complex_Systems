@@ -9,29 +9,33 @@ from fire import Fire
 from forest import Forest
 
 class Analyse:
-    def __init__(self, L, g, f, timesteps, instances, fig=None, ax=None):
+    def __init__(self, L, g, f, freeze_time_during_fire, remember_history, timesteps, instances):
         self.ims = []
         self.instances = instances
         self.proportion_power_law = 'Not yet calculated'
         self.L = L
         self.g = g
         self.f = f
+        self.freeze_time_during_fire = freeze_time_during_fire
+        self.remember_history = remember_history
         self.timesteps = timesteps
         self.cmap = colors.ListedColormap(['#4a1e13', '#047311', '#B95900'])
-        self.ax = ax
-        self.fig = fig
         self.fire_sizes = []
+        if self.remember_history:
+            fig, ax = plt.subplots()
+            self.ax = ax
+            self.fig = fig
+
 
     def run_one_instance(self):
-        forest = Forest(self.L, self.g, self.f, self.timesteps)
-
-        for t in range(self.timesteps):
+        forest = Forest(self.L, self.g, self.f, self.freeze_time_during_fire, self.timesteps)
+        while forest.t < self.timesteps:
             forest.do_timestep()
-            if self.instances == 1:
-                self.ims.append([self.ax.imshow(self.forest.forest, animated=True, cmap = self.cmap, vmin=0, vmax=2)])
+            if self.instances == 1 and self.remember_history:
+                self.ims.append([self.ax.imshow(forest.forest, animated=True, cmap = self.cmap, vmin=0, vmax=2)])
             forest.t += 1
 
-        self.fire_sizes.append(np.array([forest.fires[id].size for id in range(len(forest.fires))]))
+        self.fire_sizes.append(np.array([forest.previous_fires[id].size for id in forest.previous_fires]))
 
     def run_all(self):
         for instance in range(self.instances):
@@ -56,7 +60,7 @@ class Analyse:
     
         self.proportion_power_law = number_power_laws / len(self.fire_sizes)
 
-    def log_log_plot(self, instance):
+    def log_log_plot(self, instance=0):
         
         data = pd.Series(self.fire_sizes[instance]).value_counts()
         

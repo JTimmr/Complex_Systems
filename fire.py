@@ -36,3 +36,6 @@ class Fire:
             # Remove burning tree after it ignited others
             if self.burning_trees[burning_tree].t_ignited + self.burning_trees[burning_tree].burning_time == self.forest.t:
                 self.burned_trees.append(burning_tree)
+        
+        if len(self.burning_trees) == 0:
+            self.burning = False
