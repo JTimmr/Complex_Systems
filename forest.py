@@ -19,6 +19,7 @@ class Forest:
         self.cmap = colors.ListedColormap(['#4a1e13', '#047311', '#B95900'])
         self.ims = []
         self.trees = {}
+        self.trees_per_timestep = []
         self.fires = {}
         self.previous_fires = {}
 
@@ -91,6 +92,7 @@ class Forest:
         self.grow_fire()
         self.extinguish_trees()
         self.update_fires()
+        self.trees_per_timestep.append(len(self.trees))
 
         if self.t % self.lightning_frequency == 0:
             self.lightning_strike()
