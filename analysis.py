@@ -21,6 +21,7 @@ class Analyse:
         self.timesteps = timesteps
         self.cmap = colors.ListedColormap(['#4a1e13', '#047311', '#B95900'])
         self.fire_sizes = []
+        self.trees_timeseries = []
         if self.remember_history:
             fig, ax = plt.subplots()
             self.ax = ax
@@ -36,6 +37,8 @@ class Analyse:
             forest.t += 1
 
         self.fire_sizes.append(np.array([forest.previous_fires[id].size for id in forest.previous_fires]))
+        self.trees_timeseries.append(forest.trees_per_timestep)
+
 
     def run_all(self):
         for instance in range(self.instances):
@@ -67,10 +70,13 @@ class Analyse:
             for element in sizes_list:
                 all_fire_sizes.append(element)
         data = pd.Series(all_fire_sizes).value_counts()/len(all_fire_sizes)
-        plt.scatter(data.index,data)
 
+        plt.scatter(data.index, data, color='black', s=3)
+        plt.grid(True, which='both', linestyle='--', linewidth=0.5)
+        
         plt.xscale('log')
         plt.yscale('log')
+
         plt.xlabel('Fire size')
         plt.ylabel('Frequency')
         plt.title('Frequency fire sizes over all instances')
