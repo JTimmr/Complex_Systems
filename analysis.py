@@ -21,14 +21,14 @@ class Analyse:
         self.timesteps = timesteps
         self.cmap = colors.ListedColormap(['#4a1e13', '#047311', '#B95900'])
         self.fire_sizes = []
-        self.trees_timeseries = []
+        self.trees_timeseries = np.zeros(shape=(self.instances,self.timesteps))
         if self.remember_history:
             fig, ax = plt.subplots()
             self.ax = ax
             self.fig = fig
 
 
-    def run_one_instance(self):
+    def run_one_instance(self, instance_number):
         forest = Forest(self.L, self.g, self.f, self.freeze_time_during_fire, self.timesteps)
         while forest.t < self.timesteps:
             forest.do_timestep()
@@ -37,12 +37,12 @@ class Analyse:
             forest.t += 1
 
         self.fire_sizes.append(np.array([forest.previous_fires[id].size for id in forest.previous_fires]))
-        self.trees_timeseries.append(forest.trees_per_timestep)
+        self.trees_timeseries[instance_number] = forest.trees_per_timestep
 
 
     def run_all(self):
-        for instance in range(self.instances):
-            self.run_one_instance()
+        for instance_number in range(self.instances):
+            self.run_one_instance(instance_number)
     
     def find_proportion_power_law(self):
         '''
@@ -62,7 +62,7 @@ class Analyse:
                     break
     
         self.proportion_power_law = number_power_laws / len(self.fire_sizes)
-
+        
     def log_log_plot(self):
                
         all_fire_sizes = []
@@ -81,18 +81,29 @@ class Analyse:
         plt.ylabel('Frequency')
         plt.title('Frequency fire sizes over all instances')
         plt.show()
+    
+    def plot_number_trees_timeseries(self):
 
+        single_time_step_value = [self.trees_timeseries[:,i] for i in range(self.timesteps)]
+        plt.plot(range(self.timesteps),single_time_step_value, color = 'black', 
+                 alpha = 0.4)
+
+        average_value = [np.mean(self.trees_timeseries[:,i]) for i in range(self.timesteps)]
+        plt.plot(range(self.timesteps),average_value, color = 'red', label = 'Average')
+
+        plt.title(f'Number of trees per timestep for {self.instances} instances of model')
+        plt.legend()
+        plt.xlabel('t')
+        plt.ylabel('Number of trees')
+
+        plt.show()
+    
     def animate(self, filename):
 
         ani = animation.ArtistAnimation(self.fig, self.ims, interval=1, blit=True,
                                         repeat_delay=1000)
         
         ani.save(f'{filename}.gif', writer='ffmpeg', fps=30)
-    
-
-    def plot_firesizes(self):
-        plt.hist(self.fire_sizes)
-        plt.show()
 
 if __name__ == '__main__':
     L = 10
