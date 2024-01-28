@@ -119,8 +119,6 @@ class Analyse:
         plt.show()
     
     def animate(self, filename):
-
-    def animate(self, filename):
         if not hasattr(self, 'fig') or not hasattr(self, 'ax'):
             self.fig, self.ax = plt.subplots()
         

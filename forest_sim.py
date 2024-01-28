@@ -132,7 +132,7 @@ def run_simulation(size: tuple, tree_density: float, iterations: int, fire_start
     taken = 0
     # imgs = []
     i = 0
-    time_array: = []
+    time_array = []
     while i < iterations:
         start_time = time.time()
         forest, FireLength, arrayOfFireLengths, k, i, time_array = update_forest(forest=forest, growth_prob=growth_prob, lightning_prob=lightning_prob, ortho_burn_prob=ortho_burn_prob, diag_burn_prob=diag_burn_prob, FireLength=FireLength, arrayOfFireLengths=arrayOfFireLengths, time_array=time_array, i = i)
