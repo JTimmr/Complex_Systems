@@ -13,7 +13,7 @@ class Analyse:
     def __init__(self, L, g, f, freeze_time_during_fire, remember_history, timesteps, instances):
         self.ims = []
         self.instances = instances
-        self.proportion_power_law = 'Not yet calculated'
+        self.best_fitting_distributions = 'Not yet calculated'
         self.L = L
         self.g = g
         self.f = f
@@ -46,24 +46,30 @@ class Analyse:
         for instance_number in range(self.instances):
             self.run_one_instance(instance_number)
     
-    def find_proportion_power_law(self):
+    def find_best_fitting_distributions(self):
         '''
         Given the frequency of fire sizes from n instances of a forest fire model,
         returns the proportion of such instances for which the fire sizes seem to 
         follow a power law distribution. We assume the distribution is power law unless 
         proven otherwise. 
         '''
-        number_power_laws = len(self.fire_sizes)
+        best_fitting_distributions = [0,0,0,0]
         distributions_test = ['exponential','truncated_power_law','lognormal']
+
         for distribution in self.fire_sizes: 
             result = powerlaw.Fit(distribution, verbose=False)
-            for distribution in distributions_test: 
-                R, p = result.distribution_compare('power_law',distribution)
+            best_fitting = 'power_law'
+            index_best_fitting = 0
+            for i, distribution in enumerate(distributions_test, start = 1): 
+                R, p = result.distribution_compare(best_fitting, distribution)
+
                 if R < 0 and p < 0.01:
-                    number_power_laws -= 1
-                    break
-    
-        self.proportion_power_law = number_power_laws / len(self.fire_sizes)
+                    best_fitting = distribution
+                    index_best_fitting = i
+
+            best_fitting_distributions[index_best_fitting] += 1
+        
+        self.best_fitting_distributions = np.array(best_fitting_distributions)/self.instances
         
     def log_log_plot(self, ax=None, fig=None, color='black', label=None, show=False):
                
@@ -135,12 +141,13 @@ class Analyse:
         ani.save(f'{filename}.gif', writer='ffmpeg', fps=30)
 
 if __name__ == '__main__':
-    L = 10
+    L = 100
     g = 1
     f = 50
-    timesteps = 10**3
+    timesteps = 10**4
     instances = 10
-    analysis_exp =  Analyse(L, g, f, timesteps, instances)
+    analysis_exp =  Analyse(L, g, f, True, False, timesteps, instances)
     analysis_exp.run_all()
-    print(analysis_exp.find_proportion_power_law())
-    analysis_exp.log_log_plot(3)
+    analysis_exp.find_best_fitting_distributions()
+    print(analysis_exp.best_fitting_distributions)
+    analysis_exp.log_log_plot(show = True)
