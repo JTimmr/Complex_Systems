@@ -23,18 +23,19 @@ class Analyse:
         self.cmap = colors.ListedColormap(['#4a1e13', '#047311', '#B95900'])
         self.fire_sizes = []
         self.trees_timeseries = np.zeros(shape=(self.instances,self.timesteps))
+
         if self.remember_history:
-            fig, ax = plt.subplots()
-            self.ax = ax
-            self.fig = fig
+            animation_fig, animation_ax = plt.subplots()
+            self.animation_ax = animation_ax
+            self.animation_fig = animation_fig
 
 
-    def run_one_instance(self, instance_number):
+    def run_one_instance(self, instance_number=0):
         forest = Forest(self.L, self.g, self.f, self.freeze_time_during_fire, self.timesteps)
         while forest.t < self.timesteps:
             forest.do_timestep()
             if self.instances == 1 and self.remember_history:
-                self.ims.append([self.ax.imshow(forest.forest, animated=True, cmap = self.cmap, vmin=0, vmax=2)])
+                self.ims.append([self.animation_ax.imshow(forest.forest, animated=True, cmap = self.cmap, vmin=0, vmax=2)])
             forest.t += 1
 
         self.fire_sizes.append(np.array([forest.previous_fires[id].size for id in forest.previous_fires]))
@@ -55,7 +56,7 @@ class Analyse:
         number_power_laws = len(self.fire_sizes)
         distributions_test = ['exponential','truncated_power_law','lognormal']
         for distribution in self.fire_sizes: 
-            result = powerlaw.Fit(distribution)
+            result = powerlaw.Fit(distribution, verbose=False)
             for distribution in distributions_test: 
                 R, p = result.distribution_compare('power_law',distribution)
                 if R < 0 and p < 0.01:
@@ -64,7 +65,7 @@ class Analyse:
     
         self.proportion_power_law = number_power_laws / len(self.fire_sizes)
         
-    def log_log_plot(self):
+    def log_log_plot(self, ax=None, fig=None, color='black', label=None, show=False):
                
         all_fire_sizes = []
         for sizes_list in self.fire_sizes:
@@ -72,16 +73,22 @@ class Analyse:
                 all_fire_sizes.append(element)
         data = pd.Series(all_fire_sizes).value_counts()/len(all_fire_sizes)
 
-        plt.scatter(data.index, data, color='black', s=3)
-        plt.grid(True, which='both', linestyle='--', linewidth=0.5)
-        
-        plt.xscale('log')
-        plt.yscale('log')
+        if ax == None:
+            fig, ax = plt.subplots()
 
-        plt.xlabel('Fire size')
-        plt.ylabel('Frequency')
-        plt.title('Frequency fire sizes over all instances')
-        plt.show()
+        ax.scatter(data.index, data, color=color, s=3, label=label)
+        ax.grid(True, which='both', linestyle='--', linewidth=0.5)
+        
+        ax.set_xscale('log')
+        ax.set_yscale('log')
+
+        ax.set_xlabel('Fire size')
+        ax.set_ylabel('Frequency')
+        fig.suptitle('Frequency fire sizes over all instances')
+
+        if show:
+            plt.legend()
+            plt.show()
 
     def find_proportion_stable(self, epsilon = 0.1):
 
@@ -122,7 +129,7 @@ class Analyse:
         if not hasattr(self, 'fig') or not hasattr(self, 'ax'):
             self.fig, self.ax = plt.subplots()
         
-        ani = animation.ArtistAnimation(self.fig, self.ims, interval=1, blit=True,
+        ani = animation.ArtistAnimation(self.animation_fig, self.ims, interval=1, blit=True,
                                         repeat_delay=1000)
         
         ani.save(f'{filename}.gif', writer='ffmpeg', fps=30)
