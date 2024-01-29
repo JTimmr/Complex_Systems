@@ -79,11 +79,13 @@ class Forest:
         """
         Keep track of the fires.
         """
+        extinguished_fires = {}
         for id, fire in self.fires.items():
             if not fire.burning:
                 self.previous_fires[id] = fire
+                extinguished_fires[id] = fire
     
-        for id, fire in self.previous_fires.items():
+        for id, fire in extinguished_fires.items():
             if id in self.fires and not fire.burning:
                 del self.fires[id]
 
