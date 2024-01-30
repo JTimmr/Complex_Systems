@@ -28,7 +28,7 @@ class SensitivityAnal:
             self.model_parameters[self.parameter_to_change] = parameter
             L, g, f = self.model_parameters.values()
 
-            analysis = Analyse(L, g, f, True, False, self.time_steps, self.instances)
+            analysis = Analyse(L, g, f, True, False, self.time_steps, self.instances )
             analysis.run_all()
             analysis.find_best_fitting_distributions()
             
