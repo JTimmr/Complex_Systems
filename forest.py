@@ -1,3 +1,4 @@
+import random
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import matplotlib.colors as colors
@@ -9,7 +10,7 @@ from fire import Fire
 class Forest:
 
 
-    def __init__(self, L, g, f, freeze_time_during_fire, timesteps, wind=(0, 0), wind_effects_enabled=False):
+    def __init__(self, L, g, f, freeze_time_during_fire, timesteps, include_lakes, lake_proportion,  wind=(0, 0), wind_effects_enabled=False,):
         self.L = L
         self.g = g
         self.lightning_frequency = f
@@ -17,7 +18,7 @@ class Forest:
         self.timesteps = timesteps
         self.t = 0
         self.forest = np.zeros([L, L])
-        self.cmap = colors.ListedColormap(['#4a1e13', '#047311', '#B95900'])
+        self.cmap = colors.ListedColormap(['#4a1e13', '#047311', '#B95900', '#0000FF'])  # Blue for lakes
         self.ims = []
         self.trees = {}
         self.trees_per_timestep = []
@@ -25,6 +26,12 @@ class Forest:
         self.previous_fires = {}
         self.wind = wind  # Wind vector (dx, dy)
         self.wind_effects_enabled = wind_effects_enabled
+        self.include_lakes = include_lakes
+        self.lake_proportion = lake_proportion
+        self.fire_lengths = []
+        self.fire_durations = {}
+        if self.include_lakes:
+            self.initialize_lakes()
 
         # For fire-size frequency
         self.current_fires = []
@@ -32,10 +39,13 @@ class Forest:
 
 
     def plant_tree(self):
-        x, y = np.random.randint(self.L, size=2)
-        self.forest[x, y] = 1
-        tree = Tree((x, y), self.t, self)
-        self.trees[(x, y)] = tree
+        while True:
+            x, y = np.random.randint(self.L, size=2)
+            if self.forest[x, y] != 3:  # lake check
+                self.forest[x, y] = 1
+                tree = Tree((x, y), self.t, self)
+                self.trees[(x, y)] = tree
+                break
 
 
     def grow_fire(self):
@@ -64,6 +74,7 @@ class Forest:
             self.trees[location].t_ignited = self.t
             fire.burning_trees[location] = self.trees[location]
             del self.trees[location]
+            
 
     def extinguish_trees(self):
         for fire in self.fires.values():
@@ -87,7 +98,41 @@ class Forest:
     
         for id, fire in extinguished_fires.items():
             if id in self.fires and not fire.burning:
+                fire.t_extinguished = self.t  # Set the extinguish time
                 del self.fires[id]
+                # Record fire length and timestep
+                self.fire_lengths.append((fire.t_extinguished, fire.size))
+
+    def initialize_lakes(self):
+        if not self.include_lakes:
+            return
+
+        lake_cells = int(self.L * self.L * self.lake_proportion)
+        lakes_to_create = int(5)  # Adjust this for the number of lakes
+
+        for _ in range(lakes_to_create):
+            # Select a random starting point for the lake
+            x, y = np.random.randint(self.L, size=2)
+            self.expand_lake(x, y, lake_cells // lakes_to_create)
+
+    def expand_lake(self, x, y, size):
+        directions = [(1, 0), (-1, 0), (0, 1), (0, -1)]  
+        for _ in range(size):
+            if 0 <= x < self.L and 0 <= y < self.L:
+                self.forest[x, y] = 3  # Mark as lake
+            # Direction to expand
+            dx, dy = random.choice(directions)
+            x += dx
+            y += dy
+            # Ensure bounds
+            x = max(0, min(x, self.L - 1))
+            y = max(0, min(y, self.L - 1))
+            
+    def record_fire_duration(self, fire_id, duration):
+        self.fire_durations[fire_id] = duration
+            
+    
+    
 
 
     def do_timestep(self):
@@ -101,4 +146,5 @@ class Forest:
 
         if self.t % self.lightning_frequency == 0:
             self.lightning_strike()
+
 

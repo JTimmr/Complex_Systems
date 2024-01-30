@@ -3,6 +3,7 @@ from matplotlib import animation, colors
 import numpy as np
 import matplotlib.pyplot as plt
 import powerlaw
+from scipy.ndimage import label
 # import numba as nb
 # from numba import njit, prange
 EMPTY, TREE, BURNING, BOUDARY = 0, 1, 2, 3
@@ -47,6 +48,19 @@ def strike_tree(forest: np.ndarray) -> np.ndarray:
     forest[x, y] = BURNING
     return forest
 
+def calculate_cluster_sizes(forest):
+    # Identify clusters (connected components) of burning trees
+    structure = np.array([[1, 1, 1],
+                          [1, 1, 1],
+                          [1, 1, 1]])  # This defines the connectivity (8-neighbors)
+    labeled, num_clusters = label(forest == BURNING, structure)
+
+    labeled, num_clusters = label(forest == TREE, structure)
+
+      # Calculate sizes of tree clusters
+    cluster_sizes = np.array([np.sum(labeled == i) for i in range(1, num_clusters + 1)])
+    return cluster_sizes
+
 def update_forest(forest: np.ndarray , growth_prob: float, lightning_prob: float, ortho_burn_prob: float, diag_burn_prob: float, FireLength: int , arrayOfFireLengths: list[int], time_array: list[int], i,  mode = "sequential"):
   new_forest = forest.copy()
   k = 1
@@ -88,10 +102,13 @@ def update_forest(forest: np.ndarray , growth_prob: float, lightning_prob: float
             if (prob_of_lightning < 0.1):
               x, y = np.random.randint(low=new_forest.shape[0], size=2)
               new_forest[x, y] = BURNING
-              FireLength += 1
     else: 
         FireLength = FireLength + fire_counts.size
         k = 0
+    new_forest[0, :] = BOUDARY
+    new_forest[-1, :] = BOUDARY
+    new_forest[:, 0] = BOUDARY
+    new_forest[:, -1] = BOUDARY
   return new_forest, FireLength, arrayOfFireLengths, k, i, time_array
 
 # @njit(parallel=True)
@@ -128,26 +145,34 @@ def update_forest(forest: np.ndarray , growth_prob: float, lightning_prob: float
 
 def run_simulation(size: tuple, tree_density: float, iterations: int, fire_start, growth_prob: float, lightning_prob: float, ortho_burn_prob: float, diag_burn_prob: float, FireLength: int, arrayOfFireLengths: list[int] ) :
     forest = initialize_forest(size=size, tree_density=tree_density)
-    # fig, ax = plt.subplots(figsize=(10, 10))
+    fig, ax = plt.subplots(figsize=(10, 10))
     taken = 0
     # imgs = []
     i = 0
     time_array = []
+    FireLength = 0
+    arrayOfFireLengths = []
+    all_cluster_sizes = []
     while i < iterations:
         start_time = time.time()
         forest, FireLength, arrayOfFireLengths, k, i, time_array = update_forest(forest=forest, growth_prob=growth_prob, lightning_prob=lightning_prob, ortho_burn_prob=ortho_burn_prob, diag_burn_prob=diag_burn_prob, FireLength=FireLength, arrayOfFireLengths=arrayOfFireLengths, time_array=time_array, i = i)
+        cluster_sizes = calculate_cluster_sizes(forest)
+        all_cluster_sizes.append(cluster_sizes)
         i += k
         taken += time.time() - start_time
-        # imgs.append([ax.imsho w(forest, animated=True, cmap=colors.ListedColormap(colors=['brown', 'green', 'orange']), vmin=0, vmax=2)])
+        # imgs.append([ax.imshow(forest, animated=True, cmap=colors.ListedColormap(colors=['brown', 'green', 'orange']), vmin=0, vmax=2)])
     print("Total time taken: {:.2f} seconds".format(taken))
-    return time_array, arrayOfFireLengths
+  
     # ani = animation.ArtistAnimation(fig=fig, artists=imgs, interval=0.01, blit=True, repeat_delay=1000)
     # plt.show()
+    return time_array, arrayOfFireLengths, all_cluster_sizes
+
+
 
 # Parameters
 size: tuple = (50, 50) 
 tree_density: float = 0.01
-iterations: int = 5000
+iterations: int = 10000
 fire_start: tuple = (250, 250)
 growth_prob: float = 0.001
 ortho_burn_prob: float = 0.8
@@ -157,4 +182,20 @@ FireLength: int  = 0
 arrayOfFireLengths: list[int] = []
 forest = initialize_forest(size=size, tree_density=tree_density) 
 
-time_array, arrayOfFireLengths = run_simulation(size=size, tree_density=tree_density, iterations=iterations, fire_start=fire_start, growth_prob=growth_prob, lightning_prob=lightning_prob, ortho_burn_prob=ortho_burn_prob, diag_burn_prob=diag_burn_prob, FireLength=FireLength, arrayOfFireLengths=arrayOfFireLengths)
+def analyze_power_law(data):
+    # Fit the data to a power law
+    results = powerlaw.Fit(data)
+    print("Alpha:", results.power_law.alpha)
+    print("xmin:", results.power_law.xmin)
+    print()
+    print("Loglikelihood Ratio:", results.distribution_compare('power_law', 'exponential'))
+
+    figPDF = results.plot_pdf(color='b', linewidth=2)
+    plt.show()
+
+time_array, arrayOfFireLengths, all_cluster_sizes = run_simulation(size, tree_density, iterations, fire_start, growth_prob, lightning_prob, ortho_burn_prob, diag_burn_prob, FireLength, arrayOfFireLengths)
+print(all_cluster_sizes)
+
+fire_lengths, counts = np.unique(arrayOfFireLengths, return_counts=True)
+
+analyze_power_law(arrayOfFireLengths)

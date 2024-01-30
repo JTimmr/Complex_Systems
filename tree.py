@@ -6,3 +6,7 @@ class Tree:
         self.forest = forest
         self.t = t_planted
         self.burning_time = 1
+        self.state_history = []  # Store the state at each time step
+
+    # def update_state(self, state):
+    #     self.state_history.append(state)
