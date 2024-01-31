@@ -28,6 +28,7 @@ class Analyse:
         self.trees_timeseries = np.zeros(shape=(self.instances,self.timesteps))
         self.all_fire_lengths = []
         self.all_fire_durations = []
+        self.all_fire_durations_per_instance = []
         
 
         if self.remember_history:
@@ -169,18 +170,16 @@ class Analyse:
         plt.legend()
         plt.show()
 
-    def calculate_tree_densities(self):
-        tree_densities = []
-        total_area = self.L * self.L  # Calculate the total area of the forest
-
-        for instance in range(self.instances):
-            instance_densities = [trees / total_area for trees in self.trees_timeseries[instance]]
-            tree_densities.append(instance_densities)
-
-        return tree_densities
+    def calculate_average_tree_densities(self):
+        total_area = self.L * self.L
+        # Summing tree densities at each timestep across all instances
+        sum_tree_densities = np.sum(self.trees_timeseries / total_area, axis=0)
+        # Calculating the average density at each timestep
+        average_tree_densities = sum_tree_densities / self.instances
+        return average_tree_densities
     
     def plot_tree_densities(self):
-        tree_densities = self.calculate_tree_densities()
+        tree_densities = self.calculate_average_tree_densities()
 
         for instance_number, densities in enumerate(tree_densities):
             plt.plot(range(self.timesteps), densities, label=f'Instance {instance_number + 1}')
@@ -199,6 +198,7 @@ class Analyse:
         fire_duration_counts = pd.Series(self.all_fire_durations).value_counts()
         durations = fire_duration_counts.index.values
         frequencies = fire_duration_counts.values
+
         plt.figure(figsize=(10, 6))
         plt.scatter(durations, frequencies)
         plt.xscale('log')
@@ -227,6 +227,9 @@ class Analyse:
         plt.ylabel('Mean Fire Size')
         plt.title('Boxplot of Mean Fire Sizes Across Instances')
         plt.show()
+
+    def get_fire_durations(self):
+        return self.all_fire_durations
     
 
 
