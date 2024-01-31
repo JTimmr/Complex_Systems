@@ -15,7 +15,7 @@ class SensitivityAnal:
     """
 
     def __init__(self, L, f, parameter_to_change, range_min, range_max, range_step, time_steps, instances, include_lakes, lake_proportion):
-        self.model_parameters = {'L': L,'f':f}
+        self.model_parameters = {'L': L,'f':f, 'p': lake_proportion}
         self.parameter_to_change = parameter_to_change
         self.parameter_range = np.arange(range_min, range_max + range_step, range_step)
         self.time_steps = time_steps
@@ -27,14 +27,13 @@ class SensitivityAnal:
         self.mean_fire_sizes_data = []
         self.average_tree_densities_data = []
         self.include_lakes = include_lakes
-        self.lake_proportion = lake_proportion  
 
     def run(self):
         for i, parameter in enumerate(self.parameter_range):
             self.model_parameters[self.parameter_to_change] = parameter
-            L, f = self.model_parameters.values()
+            L, f, p = self.model_parameters.values()
 
-            analysis = Analyse(L, f, True, False, self.time_steps, self.instances, self.lake_proportion, self.include_lakes )
+            analysis = Analyse(L, f, True, False, self.time_steps, self.instances, p, self.include_lakes )
             analysis.run_all()
             analysis.find_best_fitting_distributions()
             

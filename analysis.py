@@ -72,8 +72,7 @@ class Analyse:
             index_best_fitting = 0
             for i, distribution in enumerate(distributions_test, start = 1): 
                 R, p = result.distribution_compare(best_fitting, distribution)
-
-                if R < 0 and p < 0.01:
+                if R < 0 and p < 0.5:
                     best_fitting = distribution
                     index_best_fitting = i
 
