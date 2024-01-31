@@ -46,7 +46,6 @@ class Analyse:
             forest.t += 1
 
         self.fire_sizes.append(np.array([forest.previous_fires[id].size for id in forest.previous_fires]))
-        print(self.fire_sizes)
         self.trees_timeseries[instance_number] = forest.trees_per_timestep
         self.all_fire_lengths.extend(forest.fire_lengths)
         self.collect_fire_durations(forest)
@@ -253,7 +252,6 @@ if __name__ == '__main__':
     analysis_exp =  Analyse(L, g, f, True, False, timesteps, instances, 0.2, True)
     analysis_exp.run_all()
     analysis_exp.find_best_fitting_distributions()
-    print(analysis_exp.best_fitting_distributions)
     analysis_exp.log_log_plot(show = True)
     analysis_exp.plot_tree_densities()
     analysis_exp.plot_fire_durations()
