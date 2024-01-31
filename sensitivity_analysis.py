@@ -49,7 +49,7 @@ class SensitivityAnal:
         for col in range(self.power_law_data.shape[1]):
             distribution_data = self.power_law_data[:,col]
             if sum(distribution_data) != 0:
-                plt.plot(sensitivity_analysis.parameter_range, distribution_data, label = distribution_names[col])
+                plt.plot(self.parameter_range, distribution_data, label = distribution_names[col])
         plt.legend(loc = 'lower right')
         plt.grid(True, which='both', linestyle='--', linewidth=0.5)
         plt.xlabel(self.parameter_to_change)
@@ -107,7 +107,7 @@ class SensitivityAnal:
         plt.show()
 
 if __name__ == '__main__':
-    sensitivity_analysis = SensitivityAnal(50, 1, 50, 'g', 0.5, 2, 0.5, 10**5, 10, True, 0.2)
+    sensitivity_analysis = SensitivityAnal(50, 50, 'f', 50, 100, 10, 10**3, 10, False, 0.2)
     sensitivity_analysis.run()
     sensitivity_analysis.make_distributions_plots()
     sensitivity_analysis.make_stability_plot()
