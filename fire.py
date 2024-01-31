@@ -39,9 +39,9 @@ class Fire:
                 # Apply wind effect if enabled
                 if self.forest.wind_effects_enabled:
                     wind_effect = self.calculate_wind_effect(burning_tree, neighbor)
-                    ignition_probability = self.forest.g * wind_effect
+                    ignition_probability = wind_effect
                 else:
-                    ignition_probability = self.forest.g
+                    ignition_probability = 1
 
                 # If neighbor cell has tree, ignite with probability g
                 if neighbor in self.forest.trees and random_num < ignition_probability and neighbor not in self.ignited_trees:
@@ -52,6 +52,7 @@ class Fire:
             # Remove burning tree after it ignited others
             if self.burning_trees[burning_tree].t_ignited + self.burning_trees[burning_tree].burning_time == self.forest.t:
                 self.burned_trees.append(burning_tree)
+
         if new_trees_ignited:
             self.spread_steps += 1
         

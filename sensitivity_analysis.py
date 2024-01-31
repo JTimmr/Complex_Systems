@@ -14,8 +14,8 @@ class SensitivityAnal:
     of the model to run for each parameter setting. 
     """
 
-    def __init__(self, L, g, f, parameter_to_change, range_min, range_max, range_step, time_steps, instances, include_lakes, lake_proportion):
-        self.model_parameters = {'L': L, 'g': g, 'f':f}
+    def __init__(self, L, f, parameter_to_change, range_min, range_max, range_step, time_steps, instances, include_lakes, lake_proportion):
+        self.model_parameters = {'L': L,'f':f}
         self.parameter_to_change = parameter_to_change
         self.parameter_range = np.arange(range_min, range_max + range_step, range_step)
         self.time_steps = time_steps
@@ -32,9 +32,9 @@ class SensitivityAnal:
     def run(self):
         for i, parameter in enumerate(self.parameter_range):
             self.model_parameters[self.parameter_to_change] = parameter
-            L, g, f = self.model_parameters.values()
+            L, f = self.model_parameters.values()
 
-            analysis = Analyse(L, g, f, True, False, self.time_steps, self.instances, self.lake_proportion, self.include_lakes )
+            analysis = Analyse(L, f, True, False, self.time_steps, self.instances, self.lake_proportion, self.include_lakes )
             analysis.run_all()
             analysis.find_best_fitting_distributions()
             

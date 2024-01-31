@@ -10,9 +10,8 @@ from fire import Fire
 class Forest:
 
 
-    def __init__(self, L, g, f, freeze_time_during_fire, timesteps, include_lakes, lake_proportion,  wind=(0, 0), wind_effects_enabled=False,):
+    def __init__(self, L, f, freeze_time_during_fire, timesteps, include_lakes, lake_proportion,  wind=(0, 0), wind_effects_enabled=False,):
         self.L = L
-        self.g = g
         self.lightning_frequency = f
         self.freeze_time_during_fire = freeze_time_during_fire
         self.timesteps = timesteps
@@ -75,7 +74,6 @@ class Forest:
             fire.burning_trees[location] = self.trees[location]
             del self.trees[location]
             
-
     def extinguish_trees(self):
         for fire in self.fires.values():
 

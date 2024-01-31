@@ -8,14 +8,14 @@ from sklearn.linear_model import LinearRegression
 from tree import Tree
 from fire import Fire
 from forest import Forest
+from scipy.stats import linregress
 
 class Analyse:
-    def __init__(self, L, g, f, freeze_time_during_fire, remember_history, timesteps, instances, lake_proportion, include_lakes):
+    def __init__(self, L, f, freeze_time_during_fire, remember_history, timesteps, instances, lake_proportion=0, include_lakes=None):
         self.ims = []
         self.instances = instances
         self.best_fitting_distributions = 'Not yet calculated'
         self.L = L
-        self.g = g
         self.f = f
         self.freeze_time_during_fire = freeze_time_during_fire
         self.remember_history = remember_history
@@ -38,7 +38,7 @@ class Analyse:
 
 
     def run_one_instance(self, instance_number=0):
-        forest = Forest(self.L, self.g, self.f, self.freeze_time_during_fire, self.timesteps, include_lakes=self.include_lakes, lake_proportion=self.lake_proportion)
+        forest = Forest(self.L, self.f, self.freeze_time_during_fire, self.timesteps, include_lakes=self.include_lakes, lake_proportion=self.lake_proportion)
         while forest.t < self.timesteps:
             forest.do_timestep()
             if self.instances == 1 and self.remember_history:
@@ -81,18 +81,38 @@ class Analyse:
         
         self.best_fitting_distributions = np.array(best_fitting_distributions)/self.instances
         
-    def log_log_plot(self, ax=None, fig=None, color='black', label=None, show=False):
+    def find_linear_part(self, data, r_squared_threshold):
+        x = np.log(data.index)
+        y = np.log(data)
+
+        linear_part_end = 0
+
+        for i in range(2, len(data)):
+            slope, _, r_value, _, _ = linregress(x[:i], y[:i])
+            if r_value**2 >= r_squared_threshold:
+                r_squared = r_value**2
+                linear_part_end = i
+            else:
+                break
+
+        return linear_part_end
+
+    def log_log_plot(self, ax=None, fig=None, color='black', label='', show=False, title='Frequency fire sizes over all instances', ax_title="", scatter=True, s=3, linewidth=0.5, alpha=0.8, r_squared_threshold=0.95):
                
         all_fire_sizes = []
         for sizes_list in self.fire_sizes:
             for element in sizes_list:
                 all_fire_sizes.append(element)
-        data = pd.Series(all_fire_sizes).value_counts()/len(all_fire_sizes)
+        data = pd.Series(all_fire_sizes).value_counts().sort_index()/len(all_fire_sizes)
 
         if ax == None:
             fig, ax = plt.subplots()
 
-        ax.scatter(data.index, data, color=color, s=3, label=label)
+        if scatter: 
+            ax.scatter(data.index, data, color=color, s=s, label=label, alpha=alpha)
+        else:
+            ax.plot(data.index, data, color=color, linewidth=linewidth, label=label, alpha=alpha)
+
         ax.grid(True, which='both', linestyle='--', linewidth=0.5)
         
         ax.set_xscale('log')
@@ -100,13 +120,23 @@ class Analyse:
 
         ax.set_xlabel('Fire size')
         ax.set_ylabel('Frequency')
-        
-        if fig is not None:
-            fig.suptitle('Frequency fire sizes over all instances')
+
+
+        linear_part_end = self.find_linear_part(data, r_squared_threshold)
+
+        # Perform linear regression on the identified linear part
+        slope, intercept, _, _, _ = linregress(np.log(data.index[:linear_part_end]), np.log(data[:linear_part_end]))
+        print(f"Best fitting slope: {slope}")
+
+        ax.plot(data.index[:linear_part_end], np.exp(intercept) * data.index[:linear_part_end]**slope, color=color, linestyle='--', label=f'Linear Fit {label}', zorder=99)
+        ax.axvline(data.index[linear_part_end-1], color=color, linestyle='--', linewidth=1)
+        ax.legend(loc='upper right')
+        ax.set_title(ax_title)
 
         if show:
-            plt.legend()
+            fig.suptitle(title)
             plt.show()
+
 
     def find_proportion_stable(self, epsilon = 0.1):
 
