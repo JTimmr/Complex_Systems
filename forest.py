@@ -114,24 +114,35 @@ class Forest:
             self.expand_lake(x, y, lake_cells // lakes_to_create)
 
     def expand_lake(self, x, y, size):
-        directions = [(1, 0), (-1, 0), (0, 1), (0, -1)]  
-        for _ in range(size):
+        visited = set()  #
+        directions = [(1, 0), (-1, 0), (0, 1), (0, -1)]
+
+        while len(visited) < size:
             if 0 <= x < self.L and 0 <= y < self.L:
-                self.forest[x, y] = 3  # Mark as lake
-            # Direction to expand
-            dx, dy = random.choice(directions)
-            x += dx
-            y += dy
-            # Ensure bounds
-            x = max(0, min(x, self.L - 1))
-            y = max(0, min(y, self.L - 1))
+                if (x, y) not in visited:
+                    self.forest[x, y] = 3  
+                    visited.add((x, y))
+
+            unvisited_directions = [d for d in directions if (x + d[0], y + d[1]) not in visited and 0 <= x + d[0] < self.L and 0 <= y + d[1] < self.L]
+            if unvisited_directions:
+                dx, dy = random.choice(unvisited_directions)
+            else:
+                dx, dy = random.choice(directions)
+
+            x = max(0, min(x + dx, self.L - 1))
+            y = max(0, min(y + dy, self.L - 1))
+
+        if len(visited) < size:
+            for i in range(self.L):
+                for j in range(self.L):
+                    if len(visited) >= size:
+                        break
+                    if (i, j) not in visited:
+                        self.forest[i, j] = 3
+                        visited.add((i,j))
             
     def record_fire_duration(self, fire_id, duration):
         self.fire_durations[fire_id] = duration
-            
-    
-    
-
 
     def do_timestep(self):
         if not self.freeze_time_during_fire or len(self.fires) == 0:
