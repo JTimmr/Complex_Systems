@@ -43,7 +43,7 @@ class SensitivityAnal:
             self.mean_fire_sizes_data.append(analysis.calculate_mean_fire_sizes())
             self.average_tree_densities_data.append(analysis.calculate_average_tree_densities())
     
-    def make_distributions_plots(self):
+    def make_distributions_plots(self, save = False, file = None):
         distribution_names = ['power law','exponential','truncated_power_law','lognormal']
         for col in range(self.power_law_data.shape[1]):
             distribution_data = self.power_law_data[:,col]
@@ -54,15 +54,24 @@ class SensitivityAnal:
         plt.xlabel(self.parameter_to_change)
         plt.ylabel('Proportion of model instances')
         plt.title('Best fitting distribution at different parameter levels')
-        plt.show()
+        
+        if save: 
+            plt.savefig(file, transparent = False, facecolor = 'white')
+        else:
+            plt.show()
 
-    def make_stability_plot(self):
+
+    def make_stability_plot(self, save = False, file = None):
         plt.plot(self.parameter_range, self.stability_data)
         plt.grid(True, which='both', linestyle='--', linewidth=0.5)
         plt.xlabel(self.parameter_to_change)
         plt.ylabel('Proportion of model instances')
         plt.title('Proportion of stable systems at different parameter levels')
-        plt.show()  
+
+        if save: 
+            plt.savefig(file, transparent = False, facecolor = 'white')
+        else:
+            plt.show()
 
     def make_fire_duration_log_log_plot(self):
         plt.figure(figsize=(10, 6))
@@ -92,7 +101,7 @@ class SensitivityAnal:
         plt.title('Boxplot of Mean Fire Sizes for Different Parameter Values')
         plt.show()
 
-    def plot_average_tree_densities(self):
+    def plot_average_tree_densities(self, save = False, file = None):
         plt.figure(figsize=(10, 6))
 
         for i, parameter in enumerate(self.parameter_range):
@@ -103,7 +112,11 @@ class SensitivityAnal:
         plt.ylabel('Average Tree Density')
         plt.title('Average Tree Density over Time for Different Parameter Values')
         plt.legend()
-        plt.show()
+        
+        if save: 
+            plt.savefig(file, transparent = False, facecolor = 'white')
+        else:
+            plt.show()
 
 if __name__ == '__main__':
     sensitivity_analysis = SensitivityAnal(50, 50, 'f', 50, 100, 10, 10**3, 10, False, 0.2)
