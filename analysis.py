@@ -42,7 +42,7 @@ class Analyse:
         while forest.t < self.timesteps:
             forest.do_timestep()
             if self.instances == 1 and self.remember_history:
-                self.ims.append([self.animation_ax.imshow(forest.forest, animated=True, cmap = self.cmap, vmin=0, vmax=2)])
+                self.ims.append([self.animation_ax.imshow(forest.forest, animated=True, cmap = self.cmap, vmin=0, vmax=3)])
             forest.t += 1
 
         self.fire_sizes.append(np.array([forest.previous_fires[id].size for id in forest.previous_fires]))
@@ -155,17 +155,21 @@ class Analyse:
 
         return stable_counter/self.instances
     
-    def plot_number_trees_timeseries(self):
+    def plot_number_trees_timeseries(self, label='Average', title=None):
 
         single_time_step_value = [self.trees_timeseries[:,i] for i in range(self.timesteps)]
         plt.plot(range(self.timesteps),single_time_step_value, color = 'black', 
                  alpha = 0.4)
 
         average_value = [np.mean(self.trees_timeseries[:,i]) for i in range(self.timesteps)]
-        plt.plot(range(self.timesteps),average_value, color = 'red', label = 'Average')
+        plt.plot(range(self.timesteps),average_value, color = 'red', label = label)
 
         plt.grid(True)
-        plt.title(f'Number of trees per timestep for {self.instances} instances of model')
+        if title == None:
+            plt.title(f'Number of trees per timestep for {self.instances} instances of model')
+        else:
+            plt.title(title)
+
         plt.legend()
         plt.xlabel('t')
         plt.ylabel('Number of trees')

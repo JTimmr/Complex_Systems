@@ -38,9 +38,13 @@ class Forest:
 
 
     def plant_tree(self):
+        """
+        Selects a random cell in self.forest which is not part of a lake.
+        Plants a tree if it does not already contain one
+        """
         while True:
             x, y = np.random.randint(self.L, size=2)
-            if self.forest[x, y] != 3:  # lake check
+            if self.forest[x, y] != 3:
                 self.forest[x, y] = 1
                 tree = Tree((x, y), self.t, self)
                 self.trees[(x, y)] = tree
@@ -48,6 +52,11 @@ class Forest:
 
 
     def grow_fire(self):
+        """
+        Iterates over all currently burning fires.
+        Calls the update function in the fire class which spreads the fire to neighbors.
+        Updates the affected trees in self.forest to their current state while keeping track of the size of the fire.
+        """ 
         for fire in self.fires.values():
             fire.update()
 
@@ -60,7 +69,11 @@ class Forest:
             fire.ignited_trees = []
 
     def lightning_strike(self):
-        
+        """
+        Selects a random location and sets it on fire.
+        If there is a tree, a new fire instance is created.
+        Nothing happens if an empty cell is selected.
+        """
         location = tuple(np.random.randint(self.L, size=2))
 
         # Ignite tree
@@ -75,6 +88,9 @@ class Forest:
             del self.trees[location]
             
     def extinguish_trees(self):
+        """
+        Ensures that the cells which had a burning tree will go back to being empty once the fire stops burning.
+        """
         for fire in self.fires.values():
 
             # Extinguish trees
@@ -86,7 +102,7 @@ class Forest:
 
     def update_fires(self):
         """
-        Keep track of the fires.
+        Keep track of the burning fires
         """
         extinguished_fires = {}
         for id, fire in self.fires.items():
@@ -144,7 +160,11 @@ class Forest:
     def record_fire_duration(self, fire_id, duration):
         self.fire_durations[fire_id] = duration
 
+
     def do_timestep(self):
+        """
+        Do timestep by executing all functions in order
+        """
         if not self.freeze_time_during_fire or len(self.fires) == 0:
             self.plant_tree()
 

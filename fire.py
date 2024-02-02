@@ -16,6 +16,9 @@ class Fire:
         self.spread_steps = 0
 
     def get_neighbors(self, coordinate):
+        """
+        Get coordinates of neighboring cells according to a Von Neumann neighborhood and a toroid shaped grid
+        """
         up = (coordinate[0], (coordinate[1] - 1) % self.forest.L)
         down = (coordinate[0], (coordinate[1] + 1) % self.forest.L)
         left = ((coordinate[0] - 1) % self.forest.L, coordinate[1])
@@ -60,22 +63,7 @@ class Fire:
             self.burning = False
             self.forest.record_fire_duration(self.id, self.spread_steps)
     
-    def get_trees_in_radius(self, center, radius):
-            """
-            Find all trees within a specified radius of a center point.
-            
-            """
-            trees_in_radius = []
-            for tree_coord, tree in self.forest.trees.items():
-                if self.distance(center, tree_coord) <= radius:
-                    trees_in_radius.append(tree_coord)
-            return trees_in_radius
 
-    def distance(self, point1, point2):
-            """
-            Calculate the Euclidean distance between two points.
-            """
-            return np.sqrt((point1[0] - point2[0])**2 + (point1[1] - point2[1])**2)
         
     def calculate_wind_effect(self, source, target):
         """
