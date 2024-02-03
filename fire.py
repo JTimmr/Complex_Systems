@@ -17,7 +17,7 @@ class Fire:
 
     def get_neighbors(self, coordinate):
         """
-        Get coordinates of neighboring cells according to a Von Neumann neighborhood and a toroid shaped grid
+        Get coordinates of neighboring cells according to a Von Neumann neighborhood and a toroid shaped grid, hence connecting all edged
         """
         up = (coordinate[0], (coordinate[1] - 1) % self.forest.L)
         down = (coordinate[0], (coordinate[1] + 1) % self.forest.L)
@@ -27,12 +27,17 @@ class Fire:
 
     def update(self):
         """
-        Burn neighbors of trees, ensuring fire doesn't spread over lakes.
+        Burn neighbors of burning trees, ensuring fire doesn't spread over lakes.
         """
         new_trees_ignited = False
+
+        # Iterate over buring trees contained by fire
         for burning_tree in list(self.burning_trees):
             neighbors = self.get_neighbors(burning_tree)
+
+            # Iterate over neighboring cells according to Von Neumann neighborhood
             for neighbor in neighbors:
+
                 # Skip the neighbor if it's a lake and lakes are included
                 if self.forest.include_lakes and self.forest.forest[neighbor] == 3:
                     continue
@@ -46,7 +51,7 @@ class Fire:
                 else:
                     ignition_probability = 1
 
-                # If neighbor cell has tree, ignite with probability g
+                # If neighbor cell has tree which is not already burning, ignite, optionally according to wind effect
                 if neighbor in self.forest.trees and random_num < ignition_probability and neighbor not in self.ignited_trees:
                     self.ignited_trees.append(neighbor)
                     self.forest.trees[neighbor].t_ignited = self.forest.t
