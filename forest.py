@@ -199,6 +199,10 @@ class Forest:
         """
         Do timestep by executing all functions in order
         """
+
+        if self.t % self.lightning_frequency == 0:
+            self.lightning_strike()
+
         if not self.freeze_time_during_fire or len(self.fires) == 0:
             self.plant_tree()
 
@@ -206,8 +210,5 @@ class Forest:
         self.extinguish_trees()
         self.update_fires()
         self.trees_per_timestep.append(len(self.trees))
-
-        if self.t % self.lightning_frequency == 0:
-            self.lightning_strike()
 
 
