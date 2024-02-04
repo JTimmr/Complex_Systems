@@ -1,7 +1,11 @@
-# Complex_System Simulation
+# Complex System Simulation
 ## Investigating Self-Organised Criticality in a forest fire model
 
 This model aims to provide insights in the spread and occurences of forest fires under different circumstances. Effects of wind and the addition of lakes have been partially included.
+
+The code has been distributed over several files, where each Python file contains a similar named class. The main notebook combines them all, allowing to investigate the behavior of the model. The implemented classes are `Forest`, `Fire`, `Tree`, `Analyse` and `SensitivityAnalysis`.
+
+`Tree` is used to make instances of unique tree objects, storing its location, the time it was planted and the time it will burn once it catches fire, among other things. `Fire` stores the instances of `Tree` object it consumes, as well as the size of the fire, the time it was ignited and the time it took untill the entire cluster of trees was burned down. It has several methods, which are responsible for the expansion of the fire. `Forest` stores both fires and trees, and optionally all states is has over time, which allows for the generation of an animation once the simulation is over. It has methods responsible for generating lakes, which happens before the simulation starts. The remaining methods provide dynamics while the simulation is running.
 
 The simulation starts with an empty L x L sized grid, and has trees grown at random, which can be ignited by a spark, e.g. lightning, or burning neighboring trees. The simulation is terminated after a predefined amount of timesteps.
 
