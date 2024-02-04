@@ -1,18 +1,18 @@
+"""Class to analyse system sensitivity to parameters
+
+Specify the paramter_to_change and the range of this parameter. Over each tested parameter value the proportion 
+of models that reach a quasi equilibrium state is calculated. Also the proportion which is best fitted by each 
+of the four tested distributions is calculated. 
+
+One should also specify the value of the unchanged parameters as well as the number of time steps and the instances
+of the model to run for each parameter setting. 
+"""
 import matplotlib.pyplot as plt
 from analysis import Analyse
 import numpy as np
 import pandas as pd
 
 class SensitivityAnal:
-    """Class to analyse system sensitivity to parameters
-
-    Specify the paramter_to_change and the range of this parameter. Over each tested parameter value the proportion 
-    of models that reach a quasi equilibrium state is calculated. Also the proportion which is best fitted by each 
-    of the four tested distributions is calculated. 
-
-    One should also specify the value of the unchanged parameters as well as the number of time steps and the instances
-    of the model to run for each parameter setting. 
-    """
 
     def __init__(self, L, f, parameter_to_change, range_min, range_max, range_step, time_steps, instances, include_lakes, lake_proportion):
         self.model_parameters = {'L': L,'f':f, 'p': lake_proportion}
@@ -29,6 +29,10 @@ class SensitivityAnal:
         self.include_lakes = include_lakes
 
     def run(self):
+        """
+        For each parameter value tested runs the model a determined number of instances and 
+        records information regarding fire sizes and tree density for later anlysis. 
+        """
         for i, parameter in enumerate(self.parameter_range):
             self.model_parameters[self.parameter_to_change] = parameter
             L, f, p = self.model_parameters.values()
@@ -44,6 +48,10 @@ class SensitivityAnal:
             self.average_tree_densities_data.append(analysis.calculate_average_tree_densities())
     
     def make_distributions_plots(self, save = False, file = None):
+        """
+        For each of the tested parameter value plots the proportion of instances that best fit each 
+        of the four tested probability distributions.
+        """
         distribution_names = ['power law','exponential','truncated_power_law','lognormal']
         for col in range(self.power_law_data.shape[1]):
             distribution_data = self.power_law_data[:,col]
@@ -62,6 +70,7 @@ class SensitivityAnal:
 
 
     def make_stability_plot(self, save = False, file = None):
+        """ For each parameter value plots the proportion of instances pass the stability test."""        
         plt.plot(self.parameter_range, self.stability_data)
         plt.grid(True, which='both', linestyle='--', linewidth=0.5)
         plt.xlabel(self.parameter_to_change)
@@ -74,6 +83,10 @@ class SensitivityAnal:
             plt.show()
 
     def make_fire_duration_log_log_plot(self):
+        """
+        For each parameter value tested generates a log log plot displaying the frequency 
+        of fire durations.
+        """
         plt.figure(figsize=(10, 6))
 
         for i, parameter in enumerate(self.parameter_range):
@@ -93,6 +106,10 @@ class SensitivityAnal:
         plt.show()
 
     def make_mean_fire_size_boxplot(self):
+        """
+        For each parameter value tested plots the distributions of fire sizes in the 
+        form of a boxplot.
+        """
         plt.figure(figsize=(10, 6))
         plt.boxplot(self.mean_fire_sizes_data, patch_artist=True)
         plt.xticks(ticks=np.arange(1, len(self.parameter_range) + 1), labels=self.parameter_range)
@@ -102,6 +119,10 @@ class SensitivityAnal:
         plt.show()
 
     def plot_average_tree_densities(self, save = False, file = None):
+        """
+        For each parameter value tested plots a time series showing the tree density averaged 
+        over the number of instances each model has been ran for. 
+        """
         plt.figure(figsize=(10, 6))
 
         for i, parameter in enumerate(self.parameter_range):
@@ -119,11 +140,21 @@ class SensitivityAnal:
             plt.show()
 
 if __name__ == '__main__':
+    L = 50
+    f = 50
+    parameter_to_change = 'f'
+    range_min = 50
+    range_max = 100
+    range_step = 10
+    time_steps = 10**3 
+    instances = 2
+    include_lakes = False 
+    lake_proportion = 0.2
     sensitivity_analysis = SensitivityAnal(50, 50, 'f', 50, 100, 10, 10**3, 10, False, 0.2)
     sensitivity_analysis.run()
     sensitivity_analysis.make_distributions_plots()
     sensitivity_analysis.make_stability_plot()
-    sensitivity_analysis.make_fire_duration_log_log_plot()
     sensitivity_analysis.make_mean_fire_size_boxplot()
     sensitivity_analysis.plot_average_tree_densities()
+    sensitivity_analysis.make_fire_duration_log_log_plot()
 

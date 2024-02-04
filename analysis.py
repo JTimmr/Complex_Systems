@@ -1,3 +1,9 @@
+"""Class to analyse one parameter setting of the model
+
+The class Analyse is used to run a model with a single set of parameter values a determined
+number of instances. From this, different data regarding fire sizes and trees density is 
+gathered. Some plotting methods are also provided. 
+"""
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import matplotlib.colors as colors
@@ -5,10 +11,10 @@ import numpy as np
 import pandas as pd
 import powerlaw
 from sklearn.linear_model import LinearRegression
+from scipy.stats import linregress
 from tree import Tree
 from fire import Fire
 from forest import Forest
-from scipy.stats import linregress
 
 class Analyse:
     def __init__(self, L, f, freeze_time_during_fire, remember_history, timesteps, instances, lake_proportion=0, include_lakes=None):
@@ -22,27 +28,28 @@ class Analyse:
         self.timesteps = timesteps
         self.include_lakes = include_lakes
         self.lake_proportion = lake_proportion
-        # Add a color for lakes, e.g., blue
         self.cmap = colors.ListedColormap(['#4a1e13', '#047311', '#B95900', '#0000FF'])  # Blue for lakes
         self.fire_sizes = []
         self.trees_timeseries = np.zeros(shape=(self.instances,self.timesteps))
         self.all_fire_lengths = []
         self.all_fire_durations = []
         self.all_fire_durations_per_instance = []
-        
-
+    
         if self.remember_history:
             animation_fig, animation_ax = plt.subplots()
             self.animation_ax = animation_ax
             self.animation_fig = animation_fig
 
-
     def run_one_instance(self, instance_number=0):
+        """
+        Run one forest fire model for the specified parameters. Save data regarding fire sizes,
+        tree time series and fire duration.
+        """
         forest = Forest(self.L, self.f, self.freeze_time_during_fire, self.timesteps, include_lakes=self.include_lakes, lake_proportion=self.lake_proportion)
         while forest.t < self.timesteps:
             forest.do_timestep()
             if self.instances == 1 and self.remember_history:
-                self.ims.append([self.animation_ax.imshow(forest.forest, animated=True, cmap = self.cmap, vmin=0, vmax=3)])
+                self.ims.append([self.animation_ax.imshow(forest.forest, animated=True, cmap = self.cmap, vmin=0, vmax=2)])
             forest.t += 1
 
         self.fire_sizes.append(np.array([forest.previous_fires[id].size for id in forest.previous_fires]))
@@ -50,19 +57,20 @@ class Analyse:
         self.all_fire_lengths.extend(forest.fire_lengths)
         self.collect_fire_durations(forest)
 
-
-
     def run_all(self):
+        """
+        Calls run_one_instance the specified number of times.
+        """
         for instance_number in range(self.instances):
             self.run_one_instance(instance_number)
     
     def find_best_fitting_distributions(self):
-        '''
+        """
         Given the frequency of fire sizes from n instances of a forest fire model,
         returns the proportion of such instances for which the fire sizes seem to 
         follow a power law distribution. We assume the distribution is power law unless 
         proven otherwise. 
-        '''
+        """
         best_fitting_distributions = [0,0,0,0]
         distributions_test = ['exponential','truncated_power_law','lognormal']
 
@@ -81,11 +89,14 @@ class Analyse:
         self.best_fitting_distributions = np.array(best_fitting_distributions)/self.instances
         
     def find_linear_part(self, data, r_squared_threshold):
+        """
+        Given the frequency of fire sizes finds the section that would display 
+        linear behavior in a log log plot. Returns, the end of this section.
+        """
         x = np.log(data.index)
         y = np.log(data)
 
         linear_part_end = 0
-
         for i in range(2, len(data)):
             slope, _, r_value, _, _ = linregress(x[:i], y[:i])
             if r_value**2 >= r_squared_threshold:
@@ -96,8 +107,13 @@ class Analyse:
 
         return linear_part_end
 
-    def log_log_plot(self, ax=None, fig=None, color='black', label='', show=False, title='Frequency fire sizes over all instances', ax_title="", scatter=True, s=3, linewidth=0.5, alpha=0.8, r_squared_threshold=0.95):
-               
+    def log_log_plot(self, ax=None, fig=None, color='black', label='', show=False, 
+                     title='Frequency fire sizes over all instances', ax_title="", 
+                     scatter=True, s=3, linewidth=0.5, alpha=0.8, r_squared_threshold=0.95):
+        """
+        Given the frequencies of fires sizes and the end of the linear section, plots the frequencies in a log log plot 
+        and fits a linear regression to the linear section. 
+        """
         all_fire_sizes = []
         for sizes_list in self.fire_sizes:
             for element in sizes_list:
@@ -116,10 +132,8 @@ class Analyse:
         
         ax.set_xscale('log')
         ax.set_yscale('log')
-
         ax.set_xlabel('Fire size')
         ax.set_ylabel('Frequency')
-
 
         linear_part_end = self.find_linear_part(data, r_squared_threshold)
 
@@ -138,6 +152,11 @@ class Analyse:
 
 
     def find_proportion_stable(self, epsilon = 0.1):
+        """
+        Takes the number of trees time series for each instance, fits a linear regression to the latter 50% 
+        of observations and if the coefficient of t is smaller than epsilon considers it stable. Returns the 
+        proportion of instances that are considered stable. 
+        """
 
         stable_counter = 0
 
@@ -155,78 +174,40 @@ class Analyse:
 
         return stable_counter/self.instances
     
-    def plot_number_trees_timeseries(self, label='Average', title=None):
-
+    def plot_number_trees_timeseries(self):
+        """
+        Give the number of trees time series produces a time series plot where each instance 
+        has a line, and the average at each time step is shown in red. 
+        """
         single_time_step_value = [self.trees_timeseries[:,i] for i in range(self.timesteps)]
         plt.plot(range(self.timesteps),single_time_step_value, color = 'black', 
                  alpha = 0.4)
 
         average_value = [np.mean(self.trees_timeseries[:,i]) for i in range(self.timesteps)]
-        plt.plot(range(self.timesteps),average_value, color = 'red', label = label)
+        plt.plot(range(self.timesteps),average_value, color = 'red', label = 'Average')
 
         plt.grid(True)
-        if title == None:
-            plt.title(f'Number of trees per timestep for {self.instances} instances of model')
-        else:
-            plt.title(title)
-
+        plt.title(f'Number of trees per timestep for {self.instances} instances of model')
         plt.legend()
         plt.xlabel('t')
         plt.ylabel('Number of trees')
 
         plt.show()
 
-    def plot_fire_lengths_over_time(self):
-        if not self.all_fire_lengths:
-            print('No data to plot')
-            return
-
-        timesteps, fire_lengths = zip(*self.all_fire_lengths)
-
-        plt.plot(timesteps, fire_lengths)
-        plt.xlabel('Time Step')
-        plt.ylabel('Length of Fire')
-        plt.title('Plot of Fire Lengths Over Time')
-        plt.show()
-
-    def plot_avalanche_size_time_series(self):
-        fig, ax = plt.subplots(figsize=(10, 6))
-
-        for instance in range(self.instances):
-            plt.plot(range(self.timesteps), self.fire_sizes[instance], label=f'Instance {instance + 1}')
-
-        plt.grid(True)
-        plt.title('Avalanche Size Time Series')
-        plt.xlabel('Time Step')
-        plt.ylabel('Avalanche Size (Forest Fire Length)')
-        plt.legend()
-        plt.show()
-
     def calculate_average_tree_densities(self):
+        """Returns the trees density at each time step averaged over all instances."""
         total_area = self.L * self.L
-        # Summing tree densities at each timestep across all instances
         sum_tree_densities = np.sum(self.trees_timeseries / total_area, axis=0)
-        # Calculating the average density at each timestep
         average_tree_densities = sum_tree_densities / self.instances
         return average_tree_densities
     
-    def plot_tree_densities(self):
-        tree_densities = self.calculate_average_tree_densities()
-
-        for instance_number, densities in enumerate(tree_densities):
-            plt.plot(range(self.timesteps), densities, label=f'Instance {instance_number + 1}')
-
-        plt.xlabel('Time Step')
-        plt.ylabel('Tree Density')
-        plt.title('Tree Density over Time')
-        plt.legend()
-        plt.show()
-
     def collect_fire_durations(self, forest):
+        """Aggregates data regarding fire duration in each individual instance."""
         for fire_id, duration in forest.fire_durations.items():
             self.all_fire_durations.append(duration)
 
     def plot_fire_durations(self):
+        """Produces a log log plot showing the frequency of each fire duration."""
         fire_duration_counts = pd.Series(self.all_fire_durations).value_counts()
         durations = fire_duration_counts.index.values
         frequencies = fire_duration_counts.values
@@ -239,9 +220,12 @@ class Analyse:
         plt.ylabel('Frequency')
         plt.title('Log-Log Plot of Fire Durations')
         plt.show()
+            
+    def get_fire_durations(self):
+        return self.all_fire_durations
 
     def calculate_mean_fire_sizes(self):
-        """Overall mean fire size."""
+        """Calculate mean fire size over all instances."""
         mean_fire_sizes = []
         for sizes in self.fire_sizes:
             if len(sizes) > 0:
@@ -260,14 +244,11 @@ class Analyse:
         plt.title('Boxplot of Mean Fire Sizes Across Instances')
         plt.show()
 
-    def get_fire_durations(self):
-        return self.all_fire_durations
-    
-
-
-    
-    
     def animate(self, filename):
+        """
+        Produces an animation of one instance of the model in a grid. Saves it at a .gif in the specified 
+        location.
+        """
         if not hasattr(self, 'fig') or not hasattr(self, 'ax'):
             self.fig, self.ax = plt.subplots()
         
@@ -276,17 +257,18 @@ class Analyse:
         
         ani.save(f'{filename}.gif', writer='ffmpeg', fps=30)
 
+# Sample use of the class and useful for testing
 if __name__ == '__main__':
     L = 50
     g = 1
     f = 50
-    timesteps = 10**5
+    timesteps = 10**4
     instances = 10
-    analysis_exp =  Analyse(L, g, f, True, False, timesteps, instances, 0.2, True)
-    analysis_exp.run_all()
+    analysis_exp =  Analyse(L, f, True, False, timesteps, instances, 0.2, False)
+    analysis_exp.run_all()   
     analysis_exp.find_best_fitting_distributions()
     analysis_exp.log_log_plot(show = True)
-    analysis_exp.plot_tree_densities()
+    analysis_exp.find_proportion_stable()
+    analysis_exp.plot_number_trees_timeseries()
+    analysis_exp.calculate_average_tree_densities() 
     analysis_exp.plot_fire_durations()
-    analysis_exp.plot_mean_fire_sizes()
-    analysis_exp.animate('testiku')
