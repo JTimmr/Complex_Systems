@@ -4,6 +4,8 @@ The class Analyse is used to run a model with a single set of parameter values a
 number of instances. From this, different data regarding fire sizes and trees density is 
 gathered. Some plotting methods are also provided. 
 """
+
+
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import matplotlib.colors as colors
@@ -28,7 +30,7 @@ class Analyse:
         self.timesteps = timesteps
         self.include_lakes = include_lakes
         self.lake_proportion = lake_proportion
-        self.cmap = colors.ListedColormap(['#4a1e13', '#047311', '#B95900', '#0000FF'])  # Blue for lakes
+        self.cmap = colors.ListedColormap(['#4a1e13', '#047311', '#B95900', '#0000FF'])
         self.fire_sizes = []
         self.trees_timeseries = np.zeros(shape=(self.instances,self.timesteps))
         self.all_fire_lengths = []
@@ -49,7 +51,7 @@ class Analyse:
         while forest.t < self.timesteps:
             forest.do_timestep()
             if self.instances == 1 and self.remember_history:
-                self.ims.append([self.animation_ax.imshow(forest.forest, animated=True, cmap = self.cmap, vmin=0, vmax=2)])
+                self.ims.append([self.animation_ax.imshow(forest.forest, animated=True, cmap = self.cmap, vmin=0, vmax=3)])
             forest.t += 1
 
         self.fire_sizes.append(np.array([forest.previous_fires[id].size for id in forest.previous_fires]))
@@ -78,8 +80,10 @@ class Analyse:
             result = powerlaw.Fit(distribution, verbose=False)
             best_fitting = 'power_law'
             index_best_fitting = 0
+
             for i, distribution in enumerate(distributions_test, start = 1): 
                 R, p = result.distribution_compare(best_fitting, distribution)
+
                 if R < 0 and p < 0.05:
                     best_fitting = distribution
                     index_best_fitting = i
@@ -99,11 +103,11 @@ class Analyse:
         linear_part_end = 0
         for i in range(2, len(data)):
             slope, _, r_value, _, _ = linregress(x[:i], y[:i])
+
             if r_value**2 >= r_squared_threshold:
-                r_squared = r_value**2
                 linear_part_end = i
             else:
-                break
+                return linear_part_end
 
         return linear_part_end
 
@@ -118,6 +122,7 @@ class Analyse:
         for sizes_list in self.fire_sizes:
             for element in sizes_list:
                 all_fire_sizes.append(element)
+
         data = pd.Series(all_fire_sizes).value_counts().sort_index()/len(all_fire_sizes)
 
         if ax == None:
@@ -151,7 +156,7 @@ class Analyse:
             plt.show()
 
 
-    def find_proportion_stable(self, epsilon = 0.1):
+    def find_proportion_stable(self, epsilon=0.1):
         """
         Takes the number of trees time series for each instance, fits a linear regression to the latter 50% 
         of observations and if the coefficient of t is smaller than epsilon considers it stable. Returns the 
@@ -160,7 +165,7 @@ class Analyse:
 
         stable_counter = 0
 
-        # fit linear regression to last 50% of points 
+        # Fit linear regression to last 50% of points 
         cut_off_point = int(self.timesteps / 2)
         linear_regression = LinearRegression()
 
@@ -169,7 +174,7 @@ class Analyse:
             X = [[i] for i in range(len(Y))]
             linear_regression.fit(X,Y)
 
-            # count as stable if slope is smaller than epsilon
+            # Count as stable if slope is smaller than epsilon
             stable_counter += linear_regression.coef_[0] < epsilon
 
         return stable_counter/self.instances
@@ -195,9 +200,11 @@ class Analyse:
         plt.show()
 
     def calculate_average_tree_densities(self):
-        """Returns the trees density at each time step averaged over all instances."""
+        """
+        Returns the trees density at each time step averaged over all instances.
+        """
         total_area = self.L * self.L
-        sum_tree_densities = np.sum(self.trees_timeseries / total_area, axis=0)
+        sum_tree_densities = np.sum(self.trees_timeseries / total_area, axis = 0)
         average_tree_densities = sum_tree_densities / self.instances
         return average_tree_densities
     
@@ -231,7 +238,7 @@ class Analyse:
             if len(sizes) > 0:
                 mean_fire_sizes.append(np.mean(sizes))
             else:
-                mean_fire_sizes.append(0)  # Append 0 if there were no fires in the instance
+                mean_fire_sizes.append(0)
         return mean_fire_sizes
     
     def plot_mean_fire_sizes(self):
@@ -249,9 +256,7 @@ class Analyse:
         Produces an animation of one instance of the model in a grid. Saves it at a .gif in the specified 
         location.
         """
-        if not hasattr(self, 'fig') or not hasattr(self, 'ax'):
-            self.fig, self.ax = plt.subplots()
-        
+
         ani = animation.ArtistAnimation(self.animation_fig, self.ims, interval=1, blit=True,
                                         repeat_delay=1000)
         
