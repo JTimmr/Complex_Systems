@@ -27,6 +27,8 @@ Tree burn for a fixed number of timesteps, and are extinguished when that thresh
 Iterating over growing dictionaries becomes increasingly slower, so a clear distinction is made between currently burning fires and fires which have been entirely burned out. Therefore, updating the dictionaries for data accumulation happens at the end of every timestep.
 
 
-`Analyse`:
+`Analyse` is used to run a model with a single set of parameter values a determined
+number of instances. From this, different data regarding fire sizes and trees density is 
+gathered. Some plotting methods are also provided. 
 
-`SensitivityAnalysis`:
+`SensitivityAnalysis` is used to analyse system sensitivity to parameters of the model. Specify the paramter_to_change and the range of this parameter. Over each tested parameter value the proportion of models that reach a quasi equilibrium state is calculated. Also the proportion which is best fitted by each of the four tested distributions is calculated (i.e. Power law, Truncated power law, Exponential and Lognormal). Further information regarding tree density and average fire size is computed and can be visualized using the plotting methods in the class. 

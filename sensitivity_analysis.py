@@ -12,7 +12,7 @@ from analysis import Analyse
 import numpy as np
 import pandas as pd
 
-class SensitivityAnal:
+class SensitivityAnalysis:
 
     def __init__(self, L, f, parameter_to_change, range_min, range_max, range_step, time_steps, instances, include_lakes, lake_proportion):
         self.model_parameters = {'L': L,'f':f, 'p': lake_proportion}
@@ -150,7 +150,7 @@ if __name__ == '__main__':
     instances = 2
     include_lakes = False 
     lake_proportion = 0.2
-    sensitivity_analysis = SensitivityAnal(50, 50, 'f', 50, 100, 10, 10**3, 10, False, 0.2)
+    sensitivity_analysis = SensitivityAnalysis(50, 50, 'f', 50, 100, 10, 10**3, 10, False, 0.2)
     sensitivity_analysis.run()
     sensitivity_analysis.make_distributions_plots()
     sensitivity_analysis.make_stability_plot()
