@@ -152,11 +152,14 @@ class Forest:
                 self.fire_lengths.append((fire.t_extinguished, fire.size))
 
     def initialize_lakes(self):
+        """
+        Initialize lakes within the forest grid
+        """
         if not self.include_lakes:
             return
 
         lake_cells = int(self.L * self.L * self.lake_proportion)
-        lakes_to_create = int(5)  # Adjust this for the number of lakes
+        lakes_to_create = int(1)  # Works only with one lake
 
         for _ in range(lakes_to_create):
             # Select a random starting point for the lake
@@ -164,15 +167,23 @@ class Forest:
             self.expand_lake(x, y, lake_cells // lakes_to_create)
 
     def expand_lake(self, x, y, size):
-        visited = set()  #
+        """
+        Expand a lake within the forest grid so they appear more natural
+        Parameters:
+        x (int): The x-coordinate where the lake expansion begins
+        y (int): The y-coordinate where the lake expansion begins
+        size (int): Number of grid cells.
+        """
+        visited = set()  # To track visited grids 
         directions = [(1, 0), (-1, 0), (0, 1), (0, -1)]
 
         while len(visited) < size:
+            # Ensure grid bounds
             if 0 <= x < self.L and 0 <= y < self.L:
                 if (x, y) not in visited:
                     self.forest[x, y] = 3  
                     visited.add((x, y))
-
+            # A random direction from unvisited or all directions if no unvisited
             unvisited_directions = [d for d in directions if (x + d[0], y + d[1]) not in visited and 0 <= x + d[0] < self.L and 0 <= y + d[1] < self.L]
             if unvisited_directions:
                 dx, dy = random.choice(unvisited_directions)
@@ -181,7 +192,8 @@ class Forest:
 
             x = max(0, min(x + dx, self.L - 1))
             y = max(0, min(y + dy, self.L - 1))
-
+        
+        #If the lake size is not reached, continue to fill
         if len(visited) < size:
             for i in range(self.L):
                 for j in range(self.L):
