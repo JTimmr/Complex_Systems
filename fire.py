@@ -1,5 +1,6 @@
 import numpy as np
 
+
 class Fire:
     def __init__(self, t_ignited, origin, id, forest):
         self.t_ignited = t_ignited

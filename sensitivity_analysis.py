@@ -12,6 +12,7 @@ from analysis import Analyse
 import numpy as np
 import pandas as pd
 
+
 class SensitivityAnalysis:
 
     def __init__(self, L, f, parameter_to_change, range_min, range_max, range_step, time_steps, instances, include_lakes, lake_proportion):

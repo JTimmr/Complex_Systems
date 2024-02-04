@@ -14,9 +14,8 @@ import pandas as pd
 import powerlaw
 from sklearn.linear_model import LinearRegression
 from scipy.stats import linregress
-from tree import Tree
-from fire import Fire
 from forest import Forest
+
 
 class Analyse:
     def __init__(self, L, f, freeze_time_during_fire, remember_history, timesteps, instances, lake_proportion=0, include_lakes=None):
