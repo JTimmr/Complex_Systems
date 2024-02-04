@@ -25,3 +25,8 @@ Fires spread through Von Neumann neighborhoods of burning trees. Eventually, the
 Tree burn for a fixed number of timesteps, and are extinguished when that threshold is reached. By default, this burning time is set to 1 timestep. It can be modified by changing the assigned value to the variable `burning_time` in the `Tree` class. Note that changing the duration of a fire doesn't change the dynamics of the model if time is frozen during fires, as the probability of neighboring trees getting ignited by a tree on fire is 100%.
 
 Iterating over growing dictionaries becomes increasingly slower, so a clear distinction is made between currently burning fires and fires which have been entirely burned out. Therefore, updating the dictionaries for data accumulation happens at the end of every timestep.
+
+
+`Analyse`:
+
+`SensitivityAnalysis`:
